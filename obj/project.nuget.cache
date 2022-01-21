@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "FA6eX2vPkEWfil4VwYdndAwb4UGE2G2CZncKqBfGITJwTqhkgwHoirOUbBty4RKdyjyww/wUsmQzl51EZ1UwQg==",
+  "success": true,
+  "projectFilePath": "G:\\Coding\\ScreenResolutionChange\\ScreenResolutionChange\\ScreenResolutionChange.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\walte\\.nuget\\packages\\pinvoke.windows.core\\0.7.104\\pinvoke.windows.core.0.7.104.nupkg.sha512",
+    "C:\\Users\\walte\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
+    "C:\\Users\\walte\\.nuget\\packages\\windowsdisplayapi\\1.3.0.13\\windowsdisplayapi.1.3.0.13.nupkg.sha512"
+  ],
+  "logs": []
+}

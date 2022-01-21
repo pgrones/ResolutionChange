@@ -1,0 +1,149 @@
+﻿using Microsoft.Win32;
+using System.Runtime.InteropServices;
+
+namespace ScreenResolutionChange
+{
+    internal enum Flag
+    {
+        DISP_CHANGE_SUCCESSFUL = 0,
+        DISP_CHANGE_BADMODE = -2,
+        DISP_CHANGE_FAILED = -1,
+        DISP_CHANGE_RESTART = 1
+    }
+
+    public enum ResolutionEnum
+    {
+        FullHD = 0,
+        UHD = 1,
+        None = 2
+    }
+
+    internal class Resolution
+    {
+        private static void GetCurrentSettings(string monitor, ref DEVMODE mode)
+        {
+            mode.dmSize = (ushort)Marshal.SizeOf(mode);
+            var ENUM_CURRENT_SETTINGS = -1;
+            SystemMethods.EnumDisplaySettings(monitor, ENUM_CURRENT_SETTINGS, ref mode);
+        }
+
+        // Change the scale of the Monitor (0 = 100%, 1 = 125%)
+        private static int ChangeDPI(int dpi)
+        {
+            int originalDpi;
+
+            RegistryKey? key = Registry.CurrentUser.OpenSubKey("Control Panel", true);
+            key = key?.OpenSubKey("Desktop", true);
+            key = key?.OpenSubKey("PerMonitorSettings", true);
+            key = key?.OpenSubKey("AOC270230894_11_07E5_17^0FF1FA49F6A10A4AFCD1330DB3BA05EE", true);
+            originalDpi = (int)(key?.GetValue("DpiValue") ?? 0);
+            key?.SetValue("DpiValue", dpi);
+
+            key = Registry.CurrentUser.OpenSubKey("Control Panel", true);
+            key = key?.OpenSubKey("Desktop", true);
+            key = key?.OpenSubKey("PerMonitorSettings", true);
+            key = key?.OpenSubKey("AOC270230723_11_07E5_C2^B3F5565BA4CDB080E2DC645481899D42", true);
+            key?.SetValue("DpiValue", dpi);
+
+            return originalDpi;
+        }      
+        
+        public static ResolutionEnum GetCurrentResolution()
+        {
+            var device = "\\\\.\\DISPLAY1";
+            DEVMODE mode = new();
+            mode.dmSize = (ushort)Marshal.SizeOf(mode);
+            GetCurrentSettings(device, ref mode);
+
+            if (mode.dmPelsWidth == 2560)
+                return ResolutionEnum.UHD;
+            else if (mode.dmPelsWidth == 1920)
+                return ResolutionEnum.FullHD;
+            return ResolutionEnum.None;
+        }
+
+        public static void ChangeDisplaySettings(int width, int height, int frequency, int dpi)
+        {
+            var deviceNames = new List<string>() { "\\\\.\\DISPLAY1", "\\\\.\\DISPLAY2", "\\\\.\\DISPLAY3" };
+
+            var i = 0;
+            foreach (var device in deviceNames)
+            {
+                DEVMODE originalMode = new();
+                originalMode.dmSize = (ushort)Marshal.SizeOf(originalMode);
+
+                // Retrieving current settings to edit them
+                GetCurrentSettings(device, ref originalMode);
+
+                // Making a copy of the current settings to allow resetting to the original mode
+                DEVMODE newMode = originalMode;
+
+                var originalDpi = 0;
+
+                if (i < 2)
+                {
+                    // Changing the settings
+                    newMode.dmPelsWidth = (uint)width;
+                    newMode.dmPelsHeight = (uint)height;
+                    newMode.dmDisplayFrequency = (uint)frequency;
+                    originalDpi = ChangeDPI(dpi);
+                }
+                else if (width == 1920)
+                {
+                    // Only move the monitor on Full HD 
+                    newMode.dmPosition.y = 0;
+                }
+                else if (width == 2560)
+                {
+                    newMode.dmPosition.y = 360;
+                }
+
+                // Capturing the operation result
+                int result = SystemMethods.ChangeDisplaySettingsEx(device, ref newMode, IntPtr.Zero, 0, IntPtr.Zero);
+
+                if (result != (int)Flag.DISP_CHANGE_SUCCESSFUL)
+                {
+                    SystemMethods.ChangeDisplaySettingsEx(device, ref originalMode, IntPtr.Zero, 0, IntPtr.Zero);
+                    ChangeDPI(originalDpi);
+                    MessageBox.Show($"Failed. Error code = {Enum.GetName(typeof(Flag), result)}");
+                }
+                i++;
+            }
+        }
+
+        // Dubug Methods
+        public static List<string> GetDisplayNames()
+        {
+            DISPLAY_DEVICE lpDisplayDevice = new();
+            lpDisplayDevice.cb = Marshal.SizeOf(lpDisplayDevice);
+
+            uint devNum = 0;
+            var deviceNames = new List<string>();
+            while (SystemMethods.EnumDisplayDevices(null, devNum, ref lpDisplayDevice, 0))
+            {
+                deviceNames.Add(lpDisplayDevice.DeviceName);
+                ++devNum;
+            }
+
+            return deviceNames;
+        }
+
+        public static string GetSupportedModes()
+        {
+            DEVMODE mode = new();
+            mode.dmSize = (ushort)Marshal.SizeOf(mode);
+
+            int modeIndex = 0; // 0 = The first mode
+
+            var msg = "";
+
+            while (SystemMethods.EnumDisplaySettings(null, modeIndex, ref mode) == true) // Mode found
+            {
+                msg += $"{mode.dmPelsWidth} x {mode.dmPelsHeight} @ {mode.dmDisplayFrequency}\n";
+                modeIndex++; // The next mode
+            }
+
+            return msg;
+        }
+    }
+}
