@@ -5,7 +5,6 @@ G:\Coding\ScreenResolutionChange\ScreenResolutionChange\bin\Debug\net6.0-windows
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\bin\Debug\net6.0-windows\ref\ScreenResolutionChange.dll
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\bin\Debug\net6.0-windows\ScreenResolutionChange.pdb
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\obj\Debug\net6.0-windows\ScreenResolutionChange.GlobalUsings.g.cs
-G:\Coding\ScreenResolutionChange\ScreenResolutionChange\obj\Debug\net6.0-windows\ScreenResolutionChange.csproj.AssemblyReference.cache
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\obj\Debug\net6.0-windows\ScreenResolutionChange.Properties.Resources.resources
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\obj\Debug\net6.0-windows\ScreenResolutionChange.csproj.GenerateResource.cache
 G:\Coding\ScreenResolutionChange\ScreenResolutionChange\obj\Debug\net6.0-windows\ScreenResolutionChange.GeneratedMSBuildEditorConfig.editorconfig

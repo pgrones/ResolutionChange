@@ -41,11 +41,11 @@ namespace ScreenResolutionChange
             trayIcon.Visible = true;
         }
 
-        private void OnSupportedModesClick(object? sender, EventArgs e)
-        {
-            //Resolution.GetDisplayNames();
-            //Console.WriteLine(Resolution.GetSupportedModes());
-        }
+        //private void OnSupportedModesClick(object? sender, EventArgs e)
+        //{
+        //    Resolution.GetDisplayNames();
+        //    MessageBox.Show(string.Join(',',Resolution.GetDisplayNames()));
+        //}
 
         private void On2kClick(object? sender, EventArgs e)
         {

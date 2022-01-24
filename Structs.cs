@@ -16,7 +16,7 @@ namespace ScreenResolutionChange
 
         [DllImport("User32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool EnumDisplayDevices([param: MarshalAs(UnmanagedType.LPWStr)] string lpDevice, [param: MarshalAs(UnmanagedType.U4)] uint iDevNum,
+        internal static extern bool EnumDisplayDevices([param: MarshalAs(UnmanagedType.LPWStr)] string? lpDevice, [param: MarshalAs(UnmanagedType.U4)] uint iDevNum,
            [In, Out] ref DISPLAY_DEVICE lpDisplayDevice, [param: MarshalAs(UnmanagedType.U4)] uint dwFlags);
     }
 

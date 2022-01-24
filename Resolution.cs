@@ -27,6 +27,18 @@ namespace ScreenResolutionChange
             SystemMethods.EnumDisplaySettings(monitor, ENUM_CURRENT_SETTINGS, ref mode);
         }
 
+        private static bool IsUHD(string monitor)
+        {
+            DEVMODE mode = new();
+            mode.dmSize = (ushort)Marshal.SizeOf(mode);
+
+            for (int i = 0; SystemMethods.EnumDisplaySettings(monitor, i, ref mode); i++)
+            {
+                if (mode.dmPelsWidth == 2560) return true;
+            }
+            return false;
+        }
+
         // Change the scale of the Monitor (0 = 100%, 1 = 125%)
         private static int ChangeDPI(int dpi)
         {
@@ -64,7 +76,7 @@ namespace ScreenResolutionChange
 
         public static void ChangeDisplaySettings(int width, int height, int frequency, int dpi)
         {
-            var deviceNames = new List<string>() { "\\\\.\\DISPLAY1", "\\\\.\\DISPLAY2", "\\\\.\\DISPLAY3" };
+            var deviceNames = GetDisplayNames();
 
             var i = 0;
             foreach (var device in deviceNames)
@@ -80,17 +92,18 @@ namespace ScreenResolutionChange
 
                 var originalDpi = 0;
 
-                if (i < 2)
+                if (IsUHD(device))
                 {
                     // Changing the settings
                     newMode.dmPelsWidth = (uint)width;
                     newMode.dmPelsHeight = (uint)height;
                     newMode.dmDisplayFrequency = (uint)frequency;
+                    newMode.dmPosition.y = 0;
                     originalDpi = ChangeDPI(dpi);
                 }
                 else if (width == 1920)
                 {
-                    // Only move the monitor on Full HD 
+                    // The Full HD monitor is only moved
                     newMode.dmPosition.y = 0;
                 }
                 else if (width == 2560)
@@ -103,7 +116,7 @@ namespace ScreenResolutionChange
 
                 if (result != (int)Flag.DISP_CHANGE_SUCCESSFUL)
                 {
-                    SystemMethods.ChangeDisplaySettingsEx(device, ref originalMode, IntPtr.Zero, 0, IntPtr.Zero);
+                    _ = SystemMethods.ChangeDisplaySettingsEx(device, ref originalMode, IntPtr.Zero, 0, IntPtr.Zero);
                     ChangeDPI(originalDpi);
                     MessageBox.Show($"Failed. Error code = {Enum.GetName(typeof(Flag), result)}");
                 }
@@ -111,23 +124,28 @@ namespace ScreenResolutionChange
             }
         }
 
-        // Dubug Methods
+        // Get all attached displays
         public static List<string> GetDisplayNames()
         {
             DISPLAY_DEVICE lpDisplayDevice = new();
             lpDisplayDevice.cb = Marshal.SizeOf(lpDisplayDevice);
+            DISPLAY_DEVICE displaySettings = new();
+            displaySettings.cb = Marshal.SizeOf(displaySettings);
 
             uint devNum = 0;
             var deviceNames = new List<string>();
             while (SystemMethods.EnumDisplayDevices(null, devNum, ref lpDisplayDevice, 0))
-            {
-                deviceNames.Add(lpDisplayDevice.DeviceName);
+            {               
+                SystemMethods.EnumDisplayDevices(lpDisplayDevice.DeviceName, 0, ref displaySettings, 0);
+                if(displaySettings.StateFlags.HasFlag(DisplayDeviceStateFlags.AttachedToDesktop))
+                    deviceNames.Add(lpDisplayDevice.DeviceName);
                 ++devNum;
             }
 
             return deviceNames;
         }
 
+        // Dubug Method
         public static string GetSupportedModes()
         {
             DEVMODE mode = new();
@@ -137,7 +155,7 @@ namespace ScreenResolutionChange
 
             var msg = "";
 
-            while (SystemMethods.EnumDisplaySettings(null, modeIndex, ref mode) == true) // Mode found
+            while (SystemMethods.EnumDisplaySettings("\\\\.\\DISPLAY3", modeIndex, ref mode) == true) // Mode found
             {
                 msg += $"{mode.dmPelsWidth} x {mode.dmPelsHeight} @ {mode.dmDisplayFrequency}\n";
                 modeIndex++; // The next mode
